@@ -63,4 +63,36 @@ router.get('/getMoreList', function(req, res) {
 	})
 });
 
+//热门评论接口
+router.get('/getcomments', function(req, res) {
+	let flag=req.query['flag'];
+	let contentid=req.query['contentid'];
+	let url="https://comment.news.163.com/api/v1/products/a2869674571f77b5a0867c3d71db5856/threads/"+contentid.slice(1)+"008535RB/comments/hotList?offset=0&limit=10&ibc=newswap";
+	axios.get(url).then(function(data){
+		// console.log(data.data.comments);
+		let alllist=_hotlist(data.data.comments);
+		let small;
+		if(flag=="three"){
+			small=alllist.slice(0,3);
+		}
+		if(flag=='all'){
+			small=alllist.slice(3);
+		}
+		res.json(small);
+	})
+});
+//热门评论数据处理
+function _hotlist(list){
+	let newlist=[];
+	for(var key in list){
+		let ret={};
+		ret.content=list[key].content;
+		ret.createTime=list[key].createTime.slice(0,-8);
+		ret.siteName=list[key].siteName;
+		ret.location=list[key].user.location;
+		ret.nickname=list[key].user.nickname;
+		newlist.push(ret);
+	}
+	return newlist;
+}
 module.exports = router;
