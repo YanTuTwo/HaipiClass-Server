@@ -24,7 +24,30 @@ function _moviedata(list,start,len){
 	ret.tags=list.tags;
 	ret.type=list.type;
 	ret.description=list.description;
-	ret.recommendList=list.recommendList.slice(start,start+len);
+	if(start+len>=list.recommendList.length){
+		ret.recommendList=_recommenddata(list.recommendList.slice(start,list.recommendList.length));		
+	}else{
+		ret.recommendList=_recommenddata(list.recommendList.slice(start,start+len));
+	}
+	// console.log(list.recommendList);
+	return ret;
+}
+//处理recommendList的数据以适应listview组件格式
+//少传两个id
+function _recommenddata(arr){
+	let ret=[];	
+	for(var i=0;i<arr.length;i++){
+		let obj={};
+		obj.plid=arr[i].plid;
+		obj.contentid=arr[i].rid;
+		obj.image=arr[i].picUrl;
+		obj.quantity=arr[i].quantity;
+		obj.publishTime=arr[i].publishTime;
+		obj.contentTitle=arr[i].title;
+		obj.contentDesc=arr[i].description;
+		obj.viewCount=arr[i].viewcount;
+		ret.push(obj);
+	}
 	return ret;
 }
 
@@ -35,7 +58,8 @@ router.get('/getMoreList', function(req, res) {
 	let len=parseInt(req.query['len']);
 	let url="https://c.open.163.com/mob/"+plid+"/getMoviesForAndroid.do";
 	axios.get(url).then(function(data){
-		res.json(data.data.data.recommendList.slice(start,start+len));
+		// console.log(data.data);
+		res.json(_recommenddata(data.data.data.recommendList.slice(start,start+len)));
 	})
 });
 
