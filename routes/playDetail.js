@@ -33,7 +33,6 @@ function _moviedata(list,start,len){
 	return ret;
 }
 //处理recommendList的数据以适应listview组件格式
-//少传两个id
 function _recommenddata(arr){
 	let ret=[];	
 	for(var i=0;i<arr.length;i++){
