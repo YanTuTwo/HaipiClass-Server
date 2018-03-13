@@ -2,6 +2,8 @@ var express = require('express');
 var router = express.Router();
 var mongoose =require('mongoose');
 var Users = require('../models/user');
+var fs = require('fs');
+var multer= require('multer');
 
 
 //连接MongoDB数据库
@@ -25,14 +27,6 @@ mongoose.connection.on("disconnected", function () {
 // });
 
 router.post('/login', function(req, res){
-//   if(req.body.username == 'admin' && req.body.password == '123456'){
-//       res.json({code : 0, msg : '登录成功'});
-//   }
-//   else{
-//       res.json({code : 1, msg : '账号或密码错误'});
-//   }
-    console.log(req.body.userid)
-    console.log(req.body.password)
     Users.find({userid:req.body.userid,password:req.body.password},(err,data)=>{
         if(err){
             console.log(err);
@@ -80,11 +74,47 @@ router.post('/register', function(req, res){
             })
         }
     })
-    // if(req.body.username == 'admin' && req.body.password == '123456'){
-    //     res.json({code : 0, msg : '登录成功'});
-    // }
-    // else{
-    //     res.json({code : 1, msg : '账号或密码错误'});
-    // }
-  });
+});
+router.get('/getuserinfo',function(req,res){
+    console.log(req.query.userid);
+    Users.findOne({userid:req.query.userid},(err,data)=>{
+        if(err){
+            console.log(err);
+            return;
+        }
+        let userinfo={};
+        userinfo.avatar=data.avatar;
+        userinfo.username=data.username;
+        userinfo.age=data.age;
+        userinfo.sex=data.sex;
+        userinfo.intro=data.intro;
+        console.log(userinfo);
+        res.json({
+            code:true,
+            data:userinfo
+        })
+    })
+})
+
+
+//更新用户信息，包含上传用户头像
+var Storage=multer.diskStorage({
+    destination:function(req,file,cb){
+        cb(null,'../public/images');
+    },
+    filename:function(req,file,cb){
+        console.log(file);
+        cb(null,file.originalname);
+    }
+})
+var upload=multer({storage:Storage}).single('file2');
+router.post('/update',function(req,res){
+    upload(req,res,function(err){
+        console.log(err)
+        if(err){
+            return res.end(err);
+        }
+        return res.end("success!");
+    })
+})
 module.exports = router;
