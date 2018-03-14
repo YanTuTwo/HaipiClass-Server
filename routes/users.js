@@ -3,7 +3,8 @@ var router = express.Router();
 var mongoose =require('mongoose');
 var Users = require('../models/user');
 var fs = require('fs');
-var multer= require('multer');
+var formidable =require('formidable');
+var path = require("path");
 
 
 //连接MongoDB数据库
@@ -60,8 +61,8 @@ router.post('/register', function(req, res){
             Users.create({
                 userid:req.body.userid,
                 password:req.body.password,
-                username:req.body.username,
-                avatar:"默认头像地址",
+                nickname:req.body.nickname,
+                avatar:"http://192.168.1.141:3000/images/avatarimg/touxiang.jpeg",
                 age:0,
                 sex:"",
                 intro:"",
@@ -84,7 +85,7 @@ router.get('/getuserinfo',function(req,res){
         }
         let userinfo={};
         userinfo.avatar=data.avatar;
-        userinfo.username=data.username;
+        userinfo.nickname=data.nickname;
         userinfo.age=data.age;
         userinfo.sex=data.sex;
         userinfo.intro=data.intro;
@@ -98,23 +99,49 @@ router.get('/getuserinfo',function(req,res){
 
 
 //更新用户信息，包含上传用户头像
-var Storage=multer.diskStorage({
-    destination:function(req,file,cb){
-        cb(null,'../public/images');
-    },
-    filename:function(req,file,cb){
-        console.log(file);
-        cb(null,file.originalname);
-    }
-})
-var upload=multer({storage:Storage}).single('file2');
+// var Storage=multer.diskStorage({
+//     destination:function(req,file,cb){
+//         cb(null,'../public/images');
+//     },
+//     filename:function(req,file,cb){
+//         console.log(file);
+//         cb(null,file.originalname);
+//     }
+// })
+// var upload=multer({storage:Storage}).single('file2');
+
 router.post('/update',function(req,res){
-    upload(req,res,function(err){
-        console.log(err)
-        if(err){
-            return res.end(err);
-        }
-        return res.end("success!");
+    var form = new formidable.IncomingForm();
+    form.uploadDir = "./public/images/avatarimg";
+    form.keepExtensions = true;
+    form.parse(req, function(err, fields, files) {
+        
+        
+        var extname = path.extname(files.file.name);
+        // 旧的路径
+        var oldpath = path.resolve(__dirname,'../') + '/' +files.file.path;
+        //新的路径
+        var newpath = path.resolve(__dirname,'../') + '/public/images/avatarimg/'+fields.userid+extname;
+        //改名
+        fs.rename(oldpath,newpath,function (err) {
+            if(err){
+                throw  Error("改名失败");
+            }           
+            res.json({
+                code:true,
+                imgUrl:'http://192.168.1.141:3000/images/avatarimg/'+fields.userid+extname,
+            });
+        });
+
     })
+
+    // upload(req,res,function(err){
+    //     console.log(err)
+    //     if(err){
+    //         return res.end(err);
+    //     }
+    //     return res.end("success!");
+    // })
 })
+
 module.exports = router;
