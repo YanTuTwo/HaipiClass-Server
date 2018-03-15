@@ -114,24 +114,33 @@ router.post('/update',function(req,res){
     var form = new formidable.IncomingForm();
     form.uploadDir = "./public/images/avatarimg";
     form.keepExtensions = true;
+    form.maxFieldsSize = 5 * 1024*1024;
     form.parse(req, function(err, fields, files) {
-        
-        
-        var extname = path.extname(files.file.name);
-        // 旧的路径
-        var oldpath = path.resolve(__dirname,'../') + '/' +files.file.path;
-        //新的路径
-        var newpath = path.resolve(__dirname,'../') + '/public/images/avatarimg/'+fields.userid+extname;
-        //改名
-        fs.rename(oldpath,newpath,function (err) {
-            if(err){
-                throw  Error("改名失败");
-            }           
-            res.json({
-                code:true,
-                imgUrl:'http://192.168.1.141:3000/images/avatarimg/'+fields.userid+extname,
-            });
-        });
+        // console.log(fields);
+        console.log(files);
+        // fs.readFile(files.file.path,'base64', (err, data) => {
+        //     if (err) throw err;
+        //     // console.log(data);
+        //     res.json({
+        //         code:true,
+        //         imgUrl:'http://192.168.1.141:3000/'+files.file.path,
+        //     });
+        // });
+        // var extname = path.extname(files.file.name);
+        // // 旧的路径
+        // var oldpath = path.resolve(__dirname,'../') + '/' +files.file.path;
+        // // 新的路径
+        // var newpath = path.resolve(__dirname,'../') + '/public/images/avatarimg/'+fields.userid;
+        // // 改名
+        // fs.rename(oldpath,newpath,function (err) {
+        //     if(err){
+        //         throw  Error("改名失败");
+        //     }           
+        //     res.json({
+        //         code:true,
+        //         imgUrl:newpath,
+        //     });
+        // });
 
     })
 
