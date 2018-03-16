@@ -62,7 +62,7 @@ router.post('/register', function(req, res){
                 userid:req.body.userid,
                 password:req.body.password,
                 nickname:req.body.nickname,
-                avatar:"http://192.168.1.141:3000/images/avatarimg/touxiang.jpeg",
+                avatar:"http://192.168.1.8:3000/images/avatarimg/touxiang.jpeg",
                 age:0,
                 sex:"",
                 intro:"",
@@ -114,34 +114,53 @@ router.post('/update',function(req,res){
     var form = new formidable.IncomingForm();
     form.uploadDir = "./public/images/avatarimg";
     form.keepExtensions = true;
-    form.parse(req, function(err, fields, files) {
+    form.parse(req, function(err, fields, files) { 
         
-        
-        var extname = path.extname(files.file.name);
-        // 旧的路径
-        var oldpath = path.resolve(__dirname,'../') + '/' +files.file.path;
-        //新的路径
-        var newpath = path.resolve(__dirname,'../') + '/public/images/avatarimg/'+fields.userid+extname;
-        //改名
-        fs.rename(oldpath,newpath,function (err) {
-            if(err){
-                throw  Error("改名失败");
-            }           
-            res.json({
-                code:true,
-                imgUrl:'http://192.168.1.141:3000/images/avatarimg/'+fields.userid+extname,
+        if(fields.file==''){
+            //存入数据库 
+            Users.update({userid:fields.userid},{
+                nickname:fields.name,
+                age:fields.age,
+                sex:fields.sex,
+                avatar: 'http://192.168.1.146:3000/images/avatarimg/touxiang.jpeg',
+                intro:fields.intro,
+            },function(err,docs){
+                if(err) console.log(err);
+                console.log('更改成功：' + docs);
+                res.json({
+                    code:true,
+                    msg:'保存成功！',
+                });
+            }) 
+        }else{
+            //保存文件
+            var base64Data = fields.file.replace(/^data:image\/\w+;base64,/, "");
+            console.log(base64Data);
+            var dataBuffer = new Buffer(base64Data, 'base64');
+            var newpath = path.resolve(__dirname,'../') + '/public/images/avatarimg/'+fields.userid+".png";
+            fs.writeFile(newpath, dataBuffer, function(err) {
+                if(err){
+                    res.send(err);
+                }else{
+                    //存入数据库           
+                    Users.update({userid:fields.userid},{
+                        nickname:fields.name,
+                        age:fields.age,
+                        sex:fields.sex,
+                        avatar: 'http://192.168.1.146:3000/images/avatarimg/'+fields.userid+".png",
+                        intro:fields.intro,
+                    },function(err,docs){
+                        if(err) console.log(err);
+                        console.log('更改成功：' + docs);
+                        res.json({
+                            code:true,
+                            msg:'保存成功！',
+                        });
+                    })   
+                }
             });
-        });
-
+        }
     })
-
-    // upload(req,res,function(err){
-    //     console.log(err)
-    //     if(err){
-    //         return res.end(err);
-    //     }
-    //     return res.end("success!");
-    // })
 })
 
 module.exports = router;
