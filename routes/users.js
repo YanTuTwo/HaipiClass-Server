@@ -62,12 +62,12 @@ router.post('/register', function(req, res){
                 userid:req.body.userid,
                 password:req.body.password,
                 nickname:req.body.nickname,
-                avatar:"http://192.168.1.8:3000/images/avatarimg/touxiang.jpeg",
-                age:0,
-                sex:"",
+                avatar:"http://192.168.1.141:3000/images/avatarimg/touxiang.jpeg",
+                age:18,
+                sex:"男",
                 intro:"",
             },(err,data)=>{
-                console.log(data);
+                // console.log(data);
                 res.json({
                     code:true,
                     msg:"注册成功"
@@ -77,7 +77,7 @@ router.post('/register', function(req, res){
     })
 });
 router.get('/getuserinfo',function(req,res){
-    console.log(req.query.userid);
+    // console.log(req.query.userid);
     Users.findOne({userid:req.query.userid},(err,data)=>{
         if(err){
             console.log(err);
@@ -89,7 +89,7 @@ router.get('/getuserinfo',function(req,res){
         userinfo.age=data.age;
         userinfo.sex=data.sex;
         userinfo.intro=data.intro;
-        console.log(userinfo);
+        // console.log(userinfo);
         res.json({
             code:true,
             data:userinfo
@@ -111,47 +111,54 @@ router.get('/getuserinfo',function(req,res){
 // var upload=multer({storage:Storage}).single('file2');
 
 router.post('/update',function(req,res){
+    var date = new  Date();
+    console.log(date);
     var form = new formidable.IncomingForm();
     form.uploadDir = "./public/images/avatarimg";
     form.keepExtensions = true;
     form.parse(req, function(err, fields, files) { 
-        
+        // console.log(fields);
         if(fields.file==''){
+            //未更改头像，不需要保存文件
             //存入数据库 
             Users.update({userid:fields.userid},{
-                nickname:fields.name,
+                nickname:fields.nickname,
                 age:fields.age,
                 sex:fields.sex,
-                avatar: 'http://192.168.1.146:3000/images/avatarimg/touxiang.jpeg',
+                // avatar: 'http://192.168.1.141:3000/images/avatarimg/touxiang.jpeg',
                 intro:fields.intro,
             },function(err,docs){
                 if(err) console.log(err);
-                console.log('更改成功：' + docs);
+                // console.log('更改成功：' + docs);
                 res.json({
                     code:true,
                     msg:'保存成功！',
                 });
             }) 
         }else{
-            //保存文件
+            //更改头像，需保存文件
+            //gif图的上传未实现
+            // var reg = /\/(\S*);/;
+            // var imgtype = fields.file.match(reg)[1]; console.log("图片格式"+imgtype);
             var base64Data = fields.file.replace(/^data:image\/\w+;base64,/, "");
-            console.log(base64Data);
+            // console.log(base64Data);
             var dataBuffer = new Buffer(base64Data, 'base64');
-            var newpath = path.resolve(__dirname,'../') + '/public/images/avatarimg/'+fields.userid+".png";
+            var newpath = path.resolve(__dirname,'../') + '/public/images/avatarimg/'+date.getTime()+fields.userid+".png";
+            console.log(newpath);
             fs.writeFile(newpath, dataBuffer, function(err) {
                 if(err){
                     res.send(err);
                 }else{
                     //存入数据库           
                     Users.update({userid:fields.userid},{
-                        nickname:fields.name,
+                        nickname:fields.nickname,
                         age:fields.age,
                         sex:fields.sex,
-                        avatar: 'http://192.168.1.146:3000/images/avatarimg/'+fields.userid+".png",
+                        avatar: 'http://192.168.1.141:3000/images/avatarimg/'+date.getTime()+fields.userid+".png",
                         intro:fields.intro,
                     },function(err,docs){
                         if(err) console.log(err);
-                        console.log('更改成功：' + docs);
+                        // console.log('更改成功：' + docs);
                         res.json({
                             code:true,
                             msg:'保存成功！',
