@@ -97,27 +97,14 @@ router.get('/getuserinfo',function(req,res){
     })
 })
 
-
-//更新用户信息，包含上传用户头像
-// var Storage=multer.diskStorage({
-//     destination:function(req,file,cb){
-//         cb(null,'../public/images');
-//     },
-//     filename:function(req,file,cb){
-//         console.log(file);
-//         cb(null,file.originalname);
-//     }
-// })
-// var upload=multer({storage:Storage}).single('file2');
-
 router.post('/update',function(req,res){
     var date = new  Date();
-    console.log(date);
+    // console.log(date);
     var form = new formidable.IncomingForm();
     form.uploadDir = "./public/images/avatarimg";
     form.keepExtensions = true;
     form.parse(req, function(err, fields, files) { 
-        // console.log(fields);
+        console.log(fields.avatar);
         if(fields.file==''){
             //未更改头像，不需要保存文件
             //存入数据库 
@@ -136,15 +123,17 @@ router.post('/update',function(req,res){
                 });
             }) 
         }else{
-            //更改头像，需保存文件
+            /**************************** */
             //gif图的上传未实现
             // var reg = /\/(\S*);/;
             // var imgtype = fields.file.match(reg)[1]; console.log("图片格式"+imgtype);
+            //********************** */
+
+            //更改头像，需保存文件
             var base64Data = fields.file.replace(/^data:image\/\w+;base64,/, "");
-            // console.log(base64Data);
             var dataBuffer = new Buffer(base64Data, 'base64');
             var newpath = path.resolve(__dirname,'../') + '/public/images/avatarimg/'+date.getTime()+fields.userid+".png";
-            console.log(newpath);
+            // console.log(newpath);
             fs.writeFile(newpath, dataBuffer, function(err) {
                 if(err){
                     res.send(err);
@@ -163,7 +152,21 @@ router.post('/update',function(req,res){
                             code:true,
                             msg:'保存成功！',
                         });
-                    })   
+                    })  
+
+                    //删除原本的文件 
+                    var filename = fields.avatar.replace(/(.*\/)*([^.]+).*/ig,"$2");
+                    var filepath =  path.resolve(__dirname,'../') + '/public/images/avatarimg/'+filename+".png";
+                    if(filename=="touxiang"){
+                        conso.log('默认头像不删除！');
+                        return ;
+                    }
+                    fs.unlink(filepath, function(err){
+                    if(err){
+                        console.log('文件:'+filepath+'删除失败！');
+                    }
+                        console.log('文件:'+filepath+'删除成功！');
+                    })
                 }
             });
         }
