@@ -89,6 +89,7 @@ router.get('/getuserinfo',function(req,res){
         userinfo.age=data.age;
         userinfo.sex=data.sex;
         userinfo.intro=data.intro;
+        userinfo.collectList=data.collectList;
         // console.log(userinfo);
         res.json({
             code:true,
