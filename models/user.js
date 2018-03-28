@@ -8,7 +8,8 @@ var userSchema=new mongoose.Schema({
     'age':Number,
     'sex':String,
     'intro':String,
-    'collectList':Array,
+    'wyCollect':Array,
+    'hpCollect':Array,
     'playHistory':Array,
     'works':Array
 })

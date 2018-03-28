@@ -89,7 +89,7 @@ router.get('/getuserinfo',function(req,res){
         userinfo.age=data.age;
         userinfo.sex=data.sex;
         userinfo.intro=data.intro;
-        userinfo.collectList=data.collectList;
+        // userinfo.wyCollect=data.wyCollect;
         // console.log(userinfo);
         res.json({
             code:true,
@@ -105,7 +105,7 @@ router.post('/update',function(req,res){
     form.uploadDir = "./public/images/avatarimg";
     form.keepExtensions = true;
     form.parse(req, function(err, fields, files) { 
-        console.log(fields.avatar);
+        // console.log(fields.avatar);
         if(fields.file==''){
             //未更改头像，不需要保存文件
             //存入数据库 
@@ -159,7 +159,7 @@ router.post('/update',function(req,res){
                     var filename = fields.avatar.replace(/(.*\/)*([^.]+).*/ig,"$2");
                     var filepath =  path.resolve(__dirname,'../') + '/public/images/avatarimg/'+filename+".png";
                     if(filename=="touxiang"){
-                        conso.log('默认头像不删除！');
+                        console.log('默认头像不删除！');
                         return ;
                     }
                     fs.unlink(filepath, function(err){
@@ -174,4 +174,115 @@ router.post('/update',function(req,res){
     })
 })
 
+//添加收藏
+router.post('/addCollect',function(req,res){
+    Users.update({'userid':req.body.userid}, {'$push':{'wyCollect':{
+        'plid':req.body.plid,
+        'contentid':req.body.contentid,
+        'img':req.body.img,
+        'tit':req.body.tit,
+        'desc':req.body.desc,
+        'director':req.body.director,
+        'viewcount':req.body.viewcount,
+    }}},function(err,docs){
+        if(err) console.log(err);
+        console.log('添加成功：' + docs);
+        res.json({
+            code:true,
+            msg:'添加成功！',
+        });
+    }); 
+})
+//删除收藏
+router.post('/deleteCollect',function(req,res){
+    Users.update(
+        {'userid':req.body.userid}, 
+        {'$pull':{wyCollect:{plid:req.body.plid,contentid:req.body.contentid}} },
+        {multi:true},function(err,docs){
+            if(err) console.log(err);
+            console.log('取消成功：' + docs);
+            res.json({
+                code:true,
+                msg:'取消成功！',
+            });
+        } 
+    )
+})
+//获取收藏列表
+router.get('/getCollectList',function(req,res){
+    let status=req.query.status;
+    // console.log(req.query);
+    Users.findOne({userid:req.query.userid},{},(err,data)=>{
+        // console.log(data);
+        if(err){
+            console.log(err);
+            return;
+        }
+        if(status==0){
+            //获取网易的数据
+            res.json({
+                code:true,
+                data:data.wyCollect,
+            })
+        }else if(status==1){
+            //获取嗨皮的数据
+            res.json({
+                code:true,
+                data:data.hpCollect,
+            })
+        }
+    })
+})
+//添加网易播放记录
+router.post('/addhistory',function(req,res){
+    console.log(req.body);
+    Users.update(
+        {'userid':req.body.userid}, 
+        {'$pull':{playHistory:{plid:req.body.plid,contentid:req.body.contentid}} },
+        {multi:true},function(err,docs){
+            if(err) console.log(err);
+            console.log('删除成功：' + docs);
+        } 
+    )
+    Users.update({'userid':req.body.userid}, {'$push':{'playHistory':{
+        'plid':req.body.plid,
+        'contentid':req.body.contentid,
+        'tit':req.body.tit,
+        'director':req.body.director,
+        'playtime':req.body.playtime,
+    }}},function(err,docs){
+        if(err) console.log(err);
+        console.log('添加成功：' + docs);
+        res.json({
+            code:true,
+            msg:'添加成功！',
+        });
+    }); 
+})
+//清空播放记录
+router.post('/delehistory',function(req,res){
+    Users.update({'userid':req.body.userid}, {'$set':{'playHistory':[]}},function(err,docs){
+        if(err) console.log(err);
+        console.log('清除成功：' + docs);
+        res.json({
+            code:true,
+            msg:'清除成功！',
+        });
+    }); 
+})
+//获取播放记录
+router.get('/gethistory',function(req,res){
+    console.log(req.query);
+    Users.findOne({userid:req.query.userid},{},(err,data)=>{
+        // console.log(data);
+        if(err){
+            console.log(err);
+            return;
+        }
+        res.json({
+            code:true,
+            data:data.playHistory
+        })
+    })
+})
 module.exports = router;

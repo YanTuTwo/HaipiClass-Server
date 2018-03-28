@@ -9,6 +9,7 @@ router.get('/getMovieList', function(req, res) {
 	let len=parseInt(req.query['len']);
 	let url="https://c.open.163.com/mob/"+plid+"/getMoviesForAndroid.do";
 	axios.get(url).then(function(data){
+		// console.log(data.data.data);
 		res.json(_moviedata(data.data.data,start,len));
 	})
 });
@@ -16,6 +17,7 @@ router.get('/getMovieList', function(req, res) {
 
 //将视频信息做处理，简化数据
 function _moviedata(list,start,len){
+	// console.log(list);
 	let ret={};
 	ret.videoList=list.videoList;
 	ret.tit=list.title;
@@ -23,13 +25,14 @@ function _moviedata(list,start,len){
 	ret.director=list.director;
 	ret.tags=list.tags;
 	ret.type=list.type;
+	ret.quantity=list.quantity;
 	ret.description=list.description;
 	if(start+len>=list.recommendList.length){
 		ret.recommendList=_recommenddata(list.recommendList.slice(start,list.recommendList.length));		
 	}else{
 		ret.recommendList=_recommenddata(list.recommendList.slice(start,start+len));
 	}
-	// console.log(list.recommendList);
+	// console.log(ret);
 	return ret;
 }
 //处理recommendList的数据以适应listview组件格式
