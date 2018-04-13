@@ -10,7 +10,9 @@ var userSchema=new mongoose.Schema({
     'intro':String,
     'wyCollect':Array,
     'hpCollect':Array,
+    'voteHistory':Array,
     'playHistory':Array,
+    'notice':Array,
     'works':Array
 })
 module.exports=mongoose.model("Users",userSchema,'Users');
